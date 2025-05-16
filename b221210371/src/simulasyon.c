@@ -78,6 +78,58 @@ static void aracDurumlariniGuncelle(UzayAraci* araclar, Kisi* kisiler, GezegenNo
 }
 
 // Kişilerin yaşlanması - bulundukları gezegene/araca göre
+// static void kisileriGuncelleYaslandir(Kisi* kisiler, UzayAraci* araclar, GezegenNode* gezegenler) {
+//     Kisi* kisi = kisiler;
+    
+//     while (kisi) {
+//         if (kisi->kalan_omur <= 0) {
+//             // Kişi zaten ölmüş, yaşlandırma işlemi yapmaya gerek yok
+//             kisi = kisi->sonraki;
+//             continue;
+//         }
+        
+//         // Kişinin bulunduğu aracı bul
+//         UzayAraci* arac = araclar;
+//         UzayAraci* kisinin_araci = NULL;
+        
+//         while (arac) {
+//             if (strcmp(arac->ad, kisi->bulundugu_arac_adi) == 0) {
+//                 kisinin_araci = arac;
+//                 break;
+//             }
+//             arac = arac->sonraki;
+//         }
+        
+//         // Eğer aracı bulunamazsa ya da imha edilmişse işlem yapma
+//         if (!kisinin_araci || kisinin_araci->durum == IMHA) {
+//             kisi = kisi->sonraki;
+//             continue;
+//         }
+        
+//         double yaslanma_carpani = 1.0; // Varsayılan yaşlanma faktörü
+        
+//         // Eğer araç bir gezegendeyse (hareket etmemiş ya da varmış) o gezegenin yaşlanma faktörünü kullan
+//         if (kisinin_araci->durum != YOLDA) {
+//             Gezegen* bulundugu_gezegen = NULL;
+            
+//             if (kisinin_araci->durum == HEDEFTE) {
+//                 bulundugu_gezegen = gezegenBul(gezegenler, kisinin_araci->varis_gezegeni);
+//             } else {
+//                 bulundugu_gezegen = gezegenBul(gezegenler, kisinin_araci->cikis_gezegeni);
+//             }
+            
+//             if (bulundugu_gezegen) {
+//                 yaslanma_carpani = bulundugu_gezegen->yaslanma_katsayisi();
+//             }
+//         }
+        
+//         // Kişiyi yaşlandır
+//         kisi->kalan_omur -= yaslanma_carpani;
+        
+//         kisi = kisi->sonraki;
+//     }
+// }
+
 static void kisileriGuncelleYaslandir(Kisi* kisiler, UzayAraci* araclar, GezegenNode* gezegenler) {
     Kisi* kisi = kisiler;
     
@@ -123,8 +175,15 @@ static void kisileriGuncelleYaslandir(Kisi* kisiler, UzayAraci* araclar, Gezegen
             }
         }
         
-        // Kişiyi yaşlandır
+        // Kişiyi yaşlandır - hem kalan ömrü azalt hem de gerekirse yaş artır
+        double onceki_omur = kisi->kalan_omur;
         kisi->kalan_omur -= yaslanma_carpani;
+        
+        // Yaş artırma mantığı: 1 yıl = 8760 saat (365 gün × 24 saat)
+        // Kalan ömür yıl eşiğini geçtiğinde yaş artmalı
+        if ((int)(onceki_omur / 8760) > (int)(kisi->kalan_omur / 8760)) {
+            kisi->yas++;
+        }
         
         kisi = kisi->sonraki;
     }
